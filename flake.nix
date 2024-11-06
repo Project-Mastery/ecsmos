@@ -29,6 +29,8 @@
         pkg-config
         libxkbcommon
         wayland
+        libclang
+        mold
       ];
 
       LD_LIBRARY_PATH = with pkgs;  pkgs.lib.makeLibraryPath [
