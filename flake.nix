@@ -2,7 +2,7 @@
   description = "Nixos config flake";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-24.05";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
   };
 
   outputs = { self, nixpkgs, ... }:
@@ -16,12 +16,34 @@
       nativeBuildInputs = with pkgs; [
         cargo 
         rustc
-        udev alsa-lib vulkan-loader
-        xorg.libX11 xorg.libXcursor xorg.libXi xorg.libXrandr # To use the x11 feature
-        # libxkbcommon wayland # To use the wayland feature
+        rustfmt
+        pre-commit
+        rustPackages.clippy
+        alsa-lib 
+        udev 
+        vulkan-loader
+        xorg.libX11
+        xorg.libXrandr
+        xorg.libXcursor
+        xorg.libXi 
+        pkg-config
+        libxkbcommon
+        wayland
       ];
 
+      LD_LIBRARY_PATH = with pkgs;  pkgs.lib.makeLibraryPath [
+        vulkan-loader 
+        libGL
+        libxkbcommon
+        wayland
+        xorg.libX11
+        xorg.libXcursor
+        xorg.libXi
+        xorg.libXrandr
+	    ];
+
       RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+      RUST_BACKTRACE = 1;
     };
   };
 }
