@@ -13,7 +13,11 @@
   {
     devShells.${system}.default= pkgs.mkShell
     {
-      nativeBuildInputs = with pkgs; [
+
+      buildInputs = with pkgs; [
+        dbus
+        pkg-config
+        dbus
         cargo 
         rustc
         rustfmt
@@ -31,6 +35,11 @@
         wayland
         libclang
         mold
+    ];
+
+      nativeBuildInputs = with pkgs; [
+        
+        
       ];
 
       LD_LIBRARY_PATH = with pkgs;  pkgs.lib.makeLibraryPath [
@@ -46,6 +55,11 @@
 
       RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
       RUST_BACKTRACE = 1;
+
+      PKG_CONFIG_PATH = with pkgs;  pkgs.lib.makeLibraryPath [
+        pkg-config
+        udev
+      ];
     };
   };
 }
