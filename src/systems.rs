@@ -1,7 +1,7 @@
-use crate::components::*;
-use bevy::{color::palettes::css::DARK_BLUE, prelude::*};
+use crate::{components::*, consts::*};
+use bevy::{color::palettes::css::DARK_BLUE, math::vec2, prelude::*};
 
-pub fn move_player(
+pub fn input_system(
     mut transforms: Query<&mut Transform, With<Agent>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
@@ -33,7 +33,7 @@ pub fn velocity_sytem(mut query: Query<(&mut Transform, &Speed), With<Agent>>) {
     }
 }
 
-pub fn motivation_force(
+pub fn motivation_force_system(
     mut agents: Query<(&mut Speed, &Transform), With<Agent>>,
     objectives: Query<&Transform, With<Objective>>,
 ) {
@@ -46,12 +46,33 @@ pub fn motivation_force(
     let objective = objective.unwrap();
 
     for (mut speed, transform) in &mut agents {
-        let mut dv = objective.translation - transform.translation;
+        let mut direction = objective.translation - transform.translation;
 
-        dv.z = 0.;
-        dv = dv.normalize() * 0.5;
+        direction.z = 0.;
+        direction = direction.normalize() * AGENT_MAX_SPEED;
 
-        speed.0 += Vec2::new(dv.x, dv.y);
+        speed.0 += Vec2::new(direction.x, direction.y);
+    }
+}
+
+pub fn agent_araived_at_destination_system(mut commands: Commands, agents: Query<(Entity, &Transform), With<Agent>>, destinations: Query<(&Transform, &Colider), With<Objective>>){
+    for (agent, agent_transform) in &agents{
+        let agent_position = agent_transform.translation;
+
+        for (dest_transform, dest_colider) in &destinations{
+            let destination_pos = dest_transform.translation;
+
+            match dest_colider {
+                Colider::Circle(radius) => {
+                    let distance = (destination_pos - agent_position).length() - radius;
+                    if distance <= 0. {
+                        commands.entity(agent).despawn();
+                    }
+                },
+                _ => todo!()
+            }
+            
+        }
     }
 }
 
@@ -63,28 +84,33 @@ pub fn obstacle_force(
     for (mut speed, transform) in &mut agents {
         for obstacle in &obstacles {
             let mut dv = transform.translation - obstacle.translation;
-            let distance = -(dv.length() - 50.);
+            let distance = -(dv.length() - 50. - AGENT_RADIUS);
 
             dv.z = 0.;
-            dv = dv.normalize() * (distance / 10.0).exp();
-
-            speed.0 += Vec2::new(dv.x, dv.y);
+            dv = dv.normalize() * (distance / 50.).exp();
+            let dv: Vec2 = Vec2::new(dv.x, dv.y) * 1.5;
+            speed.0 += dv;
 
             let start = Vec2::new(transform.translation.x, transform.translation.y);
 
-            let vec2: Vec2 = Vec2::new(dv.x, dv.y);
             gizmos.arrow_2d(
                 start,
-                start + vec2 * 5.0,
+                start + dv * 20.0,
                 DARK_BLUE,
             );
         }
     }
 }
 
-pub fn agent_max_speed(max_speed: Res<MaxAgentSpeed>, mut agents: Query<&mut Speed, With<Agent>>) {
+pub fn agent_max_speed_system(mut agents: Query<&mut Speed, With<Agent>>) {
     for mut speed in &mut agents {
-        speed.0 = speed.0.clamp_length_max(max_speed.0);
+        speed.0 = speed.0.clamp_length_max(AGENT_MAX_SPEED);
+    }
+}
+
+pub fn start_speed_system(mut agents: Query<&mut Speed, With<Agent>>) {
+    for mut speed in &mut agents {
+        speed.0 = vec2(0.0, 0.0);
     }
 }
 
