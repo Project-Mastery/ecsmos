@@ -18,13 +18,21 @@ fn main() {
     let mut app = App::new();
     app.add_plugins((DefaultPlugins,))
         .add_systems(Startup, setup)
+        
         .add_systems(FixedUpdate, input_system)
-        .add_systems(FixedPreUpdate, start_speed_system)
-        .add_systems(FixedUpdate, motivation_force_system.before(agent_max_speed_system))
-        .add_systems(FixedUpdate, obstacle_force.before(agent_max_speed_system))
-        .add_systems(FixedUpdate, agent_max_speed_system.before(velocity_sytem))
-        .add_systems(FixedUpdate, velocity_sytem.after(input_system))
-        .add_systems(FixedUpdate, agent_araived_at_destination_system.after(velocity_sytem));
+        
+        .add_systems(FixedUpdate, motivation_force_system.before(apply_social_foces))
+        .add_systems(FixedUpdate, obstacle_force.before(apply_social_foces))
+
+        .add_systems(FixedUpdate, apply_social_foces.before(agent_max_speed_system))
+
+
+        // .add_systems(FixedUpdate, agent_max_speed_system.before(velocity_sytem))
+
+        .add_systems(FixedUpdate, velocity_sytem.after(apply_social_foces))
+
+        .add_systems(FixedUpdate, agent_araived_at_destination_system.after(velocity_sytem))
+        .add_systems(FixedUpdate, show_social_forces.after(apply_social_foces));
 
     app.run();
 }
@@ -40,6 +48,8 @@ fn setup(
         commands.spawn((
             Agent,
             Speed(vec2(0., 0.)),
+            ObstacleForce(vec2(0.,0.)),
+            MotivationForce(vec2(0.,0.)),
             MaterialMesh2dBundle {
                 mesh: Mesh2dHandle(meshes.add(Circle { radius: AGENT_RADIUS })),
                 material: materials.add(Color::from(CYAN_500)),
@@ -54,6 +64,8 @@ fn setup(
     commands.spawn((
         Agent,
         Speed(vec2(0., 0.)),
+        ObstacleForce(vec2(0.,0.)),
+        MotivationForce(vec2(0.,0.)),
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle { radius: AGENT_RADIUS })),
             material: materials.add(Color::from(CYAN_500)),
