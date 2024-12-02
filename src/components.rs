@@ -13,6 +13,9 @@ pub struct MotivationForce(pub Vec2);
 pub struct ObstacleForce(pub Vec2);
 
 #[derive(Component)]
+pub struct RepulsiveForce(pub Vec2);
+
+#[derive(Component)]
 pub struct Objective;
 
 #[derive(Component)]
