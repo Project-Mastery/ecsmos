@@ -1,9 +1,60 @@
+use std::ops::Add;
+
 use crate::{components::*, consts::*};
 use bevy::{
-    color::palettes::css::{BLUE, DARK_BLUE, DARK_RED, GREEN, PURPLE, RED, YELLOW},
-    math::{vec2, vec3},
-    prelude::*, transform,
+    color::palettes::{css::{BLUE, DARK_BLUE, DARK_RED, GREEN, PURPLE, RED, YELLOW}, tailwind::*}, math::{vec2, vec3, VectorSpace,}, prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}, transform
 };
+
+// pub fn create_colision_map(mut commands: Commands,  mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>, mut map: ResMut<GridMap<CellContents>>, obstacles: Query<&Transform, With<Obstacle>> ){
+
+
+//     for obstacle_transform in &obstacles {
+
+//         let center = Vec2::new(obstacle_transform.translation.x, obstacle_transform.translation.y);
+
+//         let bounding_box = Rect::from_center_half_size(center, Vec2::ONE * 50.);
+
+//         println!("translation = {:?}", obstacle_transform);
+//         println!("center = {:?}", center);
+//         println!("default = {:?}", bounding_box);
+//         println!("cel dim = {:?}", map.cell_dimentions);
+
+//         let max_overflow = bounding_box.max / map.cell_dimentions;
+//         let max_overflow = max_overflow - max_overflow.floor();
+
+//         let min_overflow = bounding_box.min / map.cell_dimentions;
+//         let min_overflow = min_overflow - min_overflow.floor();
+
+//         let bounding_box = Rect::from_corners(
+//             bounding_box.max + max_overflow * map.cell_dimentions, 
+//             bounding_box.min + min_overflow * map.cell_dimentions
+//         );
+
+//         println!("Expanded = {:?}", bounding_box);
+
+//         let check_area = (bounding_box.size() / map.cell_dimentions).ceil();
+//         let check_area = IVec2::new(check_area.x as i32, check_area.y as i32);
+
+//         let check_center = map.get_cell(center);
+
+//         println!("check_center = {:?}", check_center);
+//         println!("check_area = {:?}", check_area);
+        
+//         for x in (check_center.x-check_area.x.add(1) / 2)..(check_center.x+check_area.x.add(1) / 2) {
+//             for y in (check_center.y-check_area.y / 2)..(check_center.y+check_area.y / 2) {
+//                 commands.spawn((
+//                     MaterialMesh2dBundle {
+//                         mesh: Mesh2dHandle(meshes.add(Rectangle { half_size: ( map.cell_dimentions / 2.) })),
+//                         material: materials.add(Color::from(RED_500).rotate_hue( (x + y * x) as f32 * 10.).with_alpha(0.5)),
+//                         transform: Transform::from_xyz((x - map.columns.div_ceil(2) as i32) as f32 * map.cell_dimentions.x + map.area.center().x, (y - map.columns.div_ceil(2) as i32) as f32 * map.cell_dimentions.y + map.area.center().y, 10.),
+//                         ..default()
+//                     },
+//                 ));
+//             }
+//         }
+
+//     }
+// }
 
 pub fn input_system(
     mut transforms: Query<&mut Transform, With<Agent>>,

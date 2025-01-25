@@ -1,23 +1,30 @@
 mod components;
 mod systems;
 mod consts;
+mod plugins;
 
 use std::f32::consts::PI;
 
 use bevy::{
     color::palettes::tailwind::*,
-    math::vec2,
+    math::{vec2, VectorSpace},
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use components::*;
 use consts::*;
+
+
+use plugins::flow_field_pathfinding::plugin::FlowFieldPathfindingPlugin;
+
 use systems::*;
 
 fn main() {
     let mut app = App::new();
     app.add_plugins((DefaultPlugins,))
+    .add_plugins((FlowFieldPathfindingPlugin,))
         .add_systems(Startup, setup)
+        // .add_systems(Startup, create_colision_map.after(setup))
         
         .add_systems(FixedUpdate, input_system)
         
@@ -35,6 +42,7 @@ fn main() {
         .add_systems(FixedUpdate, agent_araived_at_destination_system.after(velocity_sytem))
         // .add_systems(FixedUpdate, show_social_forces.after(apply_social_foces))
         ;
+        
 
     app.run();
 }
@@ -46,26 +54,25 @@ fn setup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
-    for x in (-500..-100).step_by(50) {
-        for y in (-400..400).step_by(50) {
-            commands.spawn((
-                Agent,
-                Speed(vec2(0., 0.)),
-                ObstacleForce(vec2(0.,0.)),
-                MotivationForce(vec2(0.,0.)),
-                RepulsiveForce(vec2(0.,0.)),
-                MaterialMesh2dBundle {
-                    mesh: Mesh2dHandle(meshes.add(Circle { radius: AGENT_RADIUS })),
-                    material: materials.add(Color::from(CYAN_500)),
-                    transform: Transform::from_xyz(x as f32, y as f32, 0.1),
-                    ..default()
-                },
-            ));
-        }
-    }
 
-    
 
+    // for x in (-500..-100).step_by(50) {
+    //     for y in (-400..400).step_by(50) {
+    //         commands.spawn((
+    //             Agent,
+    //             Speed(vec2(0., 0.)),
+    //             ObstacleForce(vec2(0.,0.)),
+    //             MotivationForce(vec2(0.,0.)),
+    //             RepulsiveForce(vec2(0.,0.)),
+    //             MaterialMesh2dBundle {
+    //                 mesh: Mesh2dHandle(meshes.add(Circle { radius: AGENT_RADIUS })),
+    //                 material: materials.add(Color::from(CYAN_500)),
+    //                 transform: Transform::from_xyz(x as f32, y as f32, 0.1),
+    //                 ..default()
+    //             },
+    //         ));
+    //     }
+    // }
 
     commands.spawn((
         Objective,
@@ -77,9 +84,6 @@ fn setup(
             ..default()
         },
     ));
-
-    // let mut t = Transform::from_xyz(0.0, 0.0, -0.5);
-    // t.rotate_z(1.0 / 4.0 * PI);
 
     commands.spawn((
         Obstacle,
@@ -110,12 +114,16 @@ fn setup(
             ..default()
         },
     ));
-    // commands.spawn(MaterialMesh2dBundle {
-    //     mesh: Mesh2dHandle(meshes.add(Rectangle::new(1000.0, 700.0))),
-    //     material: materials.add(Color::srgb(214., 219., 223.)),
-    //     transform: Transform::from_xyz(0.0, 0.0, -1.0),
-    //     ..default()
-    // });
+
+    commands.spawn((
+        Obstacle,
+        MaterialMesh2dBundle {
+            mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
+            material: materials.add(Color::from(GRAY_500)),
+            transform: Transform::from_xyz(1100. / 2., 0., -0.5),
+            ..default()
+        },
+    ));
 }
 
 
