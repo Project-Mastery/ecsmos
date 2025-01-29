@@ -56,23 +56,23 @@ fn setup(
 
 
 
-    // for x in (-500..-100).step_by(50) {
-    //     for y in (-400..400).step_by(50) {
-    //         commands.spawn((
-    //             Agent,
-    //             Speed(vec2(0., 0.)),
-    //             ObstacleForce(vec2(0.,0.)),
-    //             MotivationForce(vec2(0.,0.)),
-    //             RepulsiveForce(vec2(0.,0.)),
-    //             MaterialMesh2dBundle {
-    //                 mesh: Mesh2dHandle(meshes.add(Circle { radius: AGENT_RADIUS })),
-    //                 material: materials.add(Color::from(CYAN_500)),
-    //                 transform: Transform::from_xyz(x as f32, y as f32, 0.1),
-    //                 ..default()
-    //             },
-    //         ));
-    //     }
-    // }
+    for x in (-500..-100).step_by(50) {
+        for y in (-400..400).step_by(50) {
+            commands.spawn((
+                Agent,
+                Speed(vec2(0., 0.)),
+                ObstacleForce(vec2(0.,0.)),
+                MotivationForce(vec2(0.,0.)),
+                RepulsiveForce(vec2(0.,0.)),
+                MaterialMesh2dBundle {
+                    mesh: Mesh2dHandle(meshes.add(Circle { radius: AGENT_RADIUS })),
+                    material: materials.add(Color::from(CYAN_500)),
+                    transform: Transform::from_xyz(x as f32, y as f32, 0.1),
+                    ..default()
+                },
+            ));
+        }
+    }
 
     commands.spawn((
         Objective,

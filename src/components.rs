@@ -65,6 +65,11 @@ impl<T> GridMap<T> where T: Clone + Copy{
         }
     }
 
+    pub fn reset(&mut self, default_value: T){
+        for i in 0..self.grid.len(){
+            self.grid[i] = default_value;
+        }
+    }
     pub fn get_cell(&self, pos: Vec2) -> Option<IVec2>{
 
         let coords = self.get_cell_unsafe(pos);
@@ -80,13 +85,17 @@ impl<T> GridMap<T> where T: Clone + Copy{
         self.area.center() + mim_coord / 2. + half_cell_offset
     }
 
-    pub fn get_value_at_cell(&self, pos: IVec2) -> T{
+    pub fn get_value_at_cell(&self, pos: IVec2) -> Option<T>{
 
-        self.grid[pos.x as usize + pos.y as usize * self.columns]
+        if let Some(pos) = self.check_bounds(pos){
+            return Some(self.grid[pos.x as usize + pos.y as usize * self.columns]);
+        }
+
+        None
     }
 
     pub fn get_value_at(&self, pos: Vec2) -> Option<T>{
-        Some(self.get_value_at_cell(self.get_cell(pos)?))
+        self.get_value_at_cell(self.get_cell(pos)?)
     }
 
     pub fn set_value(&mut self, pos: IVec2, value: T) -> Result<(), ()>{
@@ -112,7 +121,7 @@ impl<T> GridMap<T> where T: Clone + Copy{
             return None;
         }
 
-        Some(IRect::from_center_size(search_center, size))
+        Some(IRect::from_center_size(search_center, size + IVec2::ONE))
     }
 
     fn get_cell_unsafe(&self, pos: Vec2) -> IVec2 {

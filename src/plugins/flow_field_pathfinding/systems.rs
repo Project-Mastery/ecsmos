@@ -1,19 +1,24 @@
-use bevy::{color::palettes::tailwind::RED_500, math::vec2, prelude::*};
+use bevy::{color::palettes::tailwind::RED_500, math::{vec2, VectorSpace}, prelude::*, scene::ron::value};
 
-use crate::{GridMap, Obstacle};
+use crate::{Agent, GridMap, Obstacle};
 
 use super::resources::CellContents;
 
 pub fn setup(mut commands: Commands){
     commands.insert_resource(
         GridMap::new(
-            101, 
-            101, 
-            Rect::from_center_size(Vec2::ZERO, 1100. * Vec2::ONE), 
+            150, 
+            150, 
+            Rect::from_center_size(Vec2::ZERO * 361.415, 1100. * Vec2::ONE), 
             CellContents::Empty));
 }
 
 pub fn create_colision_map(mut map: ResMut<GridMap<CellContents>>, obstacles: Query<&Transform, (With<Obstacle>, Changed<Transform>)> ){
+    
+    if !obstacles.is_empty(){
+        map.reset(CellContents::Empty);
+    }
+    
     for obstacle_transform in &obstacles {
 
         let obstacle_center = obstacle_transform.translation.truncate();
@@ -29,7 +34,19 @@ pub fn create_colision_map(mut map: ResMut<GridMap<CellContents>>, obstacles: Qu
         for x in region.min.x..region.max.x {
             for y in region.min.y..region.max.y {
 
+                
                 let cell = IVec2::new(x, y);
+
+                if let Some(value) = map.get_value_at_cell(cell){
+
+                    if value == CellContents::Blocked{
+                        continue;
+                    }
+                }
+                else {
+                    continue;
+                }
+
                 let cell_center = map.get_coord(cell);
 
                 if(cell_center - obstacle_center).length() >= 50. {
@@ -46,9 +63,10 @@ pub fn create_colision_map(mut map: ResMut<GridMap<CellContents>>, obstacles: Qu
 }
 
 pub fn draw_grid(mut gizmos: Gizmos, map: Res<GridMap<CellContents>>){
+    
     gizmos
         .grid_2d(
-            Vec2::ZERO,
+            map.area.center(),
             0.,
             UVec2::new(map.columns as u32, map.rows as u32),
             map.cell_dimentions,
@@ -57,20 +75,18 @@ pub fn draw_grid(mut gizmos: Gizmos, map: Res<GridMap<CellContents>>){
         .outer_edges();
 
 
+    let global_offset = (Vec2::new(map.columns as f32, map.rows as f32) / 2.).floor();
+    let color = Color::from(RED_500);
+
     for x in 0..map.columns {
         for y in 0..map.rows {
             
-            let cel_value = map.get_value_at_cell(IVec2::new(x as i32, y as i32));
-
-            if cel_value == CellContents::Empty{
+            if let Some(CellContents::Empty) = map.get_value_at_cell(IVec2::new(x as i32, y as i32)){
                 continue;
             }
 
-            let global_offset = (Vec2::new(map.columns as f32, map.rows as f32) / 2.).floor();
-
-            let cell_top_left = map.area.center() + (Vec2::new(x as f32,  y as f32) - global_offset - vec2(0.5, 0.5)) * map.cell_dimentions;
-
-            let color = Color::from(RED_500);
+        
+            let cell_top_left = map.area.center() + (Vec2::new(x as f32,  y as f32) - global_offset) * map.cell_dimentions;
 
             gizmos.line_2d(cell_top_left, cell_top_left + map.cell_dimentions, color);
             gizmos.line_2d(cell_top_left + map.cell_dimentions.with_x(0.), cell_top_left + map.cell_dimentions.with_y(0.), color);
