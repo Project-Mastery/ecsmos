@@ -116,7 +116,7 @@ pub fn motivation_force_system(
 pub fn agent_araived_at_destination_system(
     mut commands: Commands,
     agents: Query<(Entity, &Transform), With<Agent>>,
-    destinations: Query<(&Transform, &Colider), With<Objective>>,
+    destinations: Query<(&Transform, &Shape), With<Objective>>,
 ) {
     for (agent, agent_transform) in &agents {
         let agent_position = agent_transform.translation;
@@ -125,7 +125,7 @@ pub fn agent_araived_at_destination_system(
             let destination_pos = dest_transform.translation;
 
             match dest_colider {
-                Colider::Circle(radius) => {
+                Shape::Circle(radius) => {
                     let distance = (destination_pos - agent_position).length() - radius;
                     if distance <= 0. {
                         commands.entity(agent).despawn();

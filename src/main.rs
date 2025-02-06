@@ -76,7 +76,7 @@ fn setup(
 
     commands.spawn((
         Objective,
-        Colider::Circle(20.),
+        Shape::Circle(20.),
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle { radius: 20.0 })),
             material: materials.add(Color::from(RED_500)),
@@ -87,6 +87,7 @@ fn setup(
 
     commands.spawn((
         Obstacle,
+        Shape::Circle(50.),
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
             material: materials.add(Color::from(GRAY_500)),
@@ -97,6 +98,7 @@ fn setup(
 
     commands.spawn((
         Obstacle,
+        Shape::Circle(50.),
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
             material: materials.add(Color::from(GRAY_500)),
@@ -107,6 +109,7 @@ fn setup(
 
     commands.spawn((
         Obstacle,
+        Shape::Circle(50.),
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
             material: materials.add(Color::from(GRAY_500)),
@@ -117,6 +120,7 @@ fn setup(
 
     commands.spawn((
         Obstacle,
+        Shape::Circle(50.),
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
             material: materials.add(Color::from(GRAY_500)),

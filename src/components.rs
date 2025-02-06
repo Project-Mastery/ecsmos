@@ -1,5 +1,5 @@
 use std::{cmp::min, default, fmt::{self, Display}};
-use anyhow::Result;
+use anyhow::{Ok, Result};
 
 use bevy::prelude::*;
 
@@ -27,8 +27,16 @@ pub struct Objective;
 pub struct Obstacle;
 
 #[derive(Component)]
-pub enum Colider {
+pub enum Shape {
     Circle(f32),
+}
+
+impl Shape {
+    pub fn get_rectangle_with_center(&self, center: Vec2) -> Rect{
+        match self {
+            Shape::Circle(r) => Rect::from_center_half_size(center, Vec2::new(*r, *r)),
+        }
+    }
 }
 
 #[derive(Resource)]
@@ -102,10 +110,27 @@ impl<T> GridMap<T> where T: Clone + Copy{
         
         if let Some(pos) = self.check_bounds(pos){
             self.grid[pos.x as usize + pos.y as usize * self.columns] = value;
-            Ok(())
+            Result::Ok(())
         } else {
             Err(())
         }
+    }
+
+    pub fn get_value_by_index(&self, i: usize) -> Option<T>{
+        if i >= self.columns * self.rows {
+            return None;
+        }
+
+        Some(self.grid[i])
+    }
+
+    pub fn set_value_by_index(&mut self, i: usize, value: T) -> Result<(), ()>{
+        if i >= self.columns * self.rows {
+            return Err(());
+        }
+
+        self.grid[i] = value;
+        return Result::Ok(())
     }
 
     pub fn cells_within_rect(&self, search_area: Rect) -> Option<IRect>{
