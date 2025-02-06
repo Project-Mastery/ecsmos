@@ -1,8 +1,8 @@
-use std::{cmp, collections::VecDeque};
+use std::collections::VecDeque;
 
-use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, math::{vec2, VectorSpace}, prelude::*, scene::ron::value};
+use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, prelude::*};
 
-use crate::{Agent, GridMap, Objective, Obstacle, Shape};
+use crate::{ GridMap, Shape};
 
 use super::resources::{BlockedStatus, CellStatus, TargetProximity, TargetStatus};
 
@@ -18,7 +18,7 @@ pub fn setup(mut commands: Commands){
         BlockedStatus::Empty
     );
 
-    let mut y = GridMap::new(
+    let y = GridMap::new(
         square_size, 
         square_size, 
         Rect::from_center_size(Vec2::ZERO * 361.415, square_length * Vec2::ONE), 
@@ -189,10 +189,7 @@ pub fn compute_proximity_map(mut proximity_map: ResMut<GridMap<TargetProximity>>
     }
 
     while let Some(pivot_pos) = open_list.pop_front(){
-        println!("Open list size = {:?}", open_list.len());
         let value_pivot_pos =  proximity_map.get_value_at_cell(pivot_pos);
-
-        println!("{:?}", value_pivot_pos);
 
         let value_pivot_pos = match value_pivot_pos {
             None | Some(TargetProximity::Unreachable | TargetProximity::NotComputed)=> continue,
@@ -216,18 +213,14 @@ pub fn compute_proximity_map(mut proximity_map: ResMut<GridMap<TargetProximity>>
                 let value_at_cell = proximity_map.get_value_at_cell(pivot_pos + IVec2::new(x, y));
 
                 match value_at_cell {
-                    None | Some(TargetProximity::Unreachable)=> {
-                        println!("{:?} Not computed or unrechable", current_cell);
-                    },
+                    None | Some(TargetProximity::Unreachable)=> {},
                     Some(TargetProximity::NotComputed) => {
-                        println!("{:?} Set first time value value = {}", current_cell, value_pivot_pos + delta);
                         proximity_map.set_value(current_cell, TargetProximity::Computed(value_pivot_pos + delta)).unwrap();
                         open_list.push_back(current_cell);
                     },
                     Some(TargetProximity::Computed(value)) => {
                         let new_distance = value_pivot_pos + delta;
                         let distance = f32::min(value, new_distance);
-                        println!("{:?} Already computed, old value = {}, compare value = {}, new value = {}", current_cell, value, new_distance, distance);
                         proximity_map.set_value(current_cell, TargetProximity::Computed(distance)).unwrap();
                     }  
                 };
