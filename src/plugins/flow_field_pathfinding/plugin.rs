@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{Objective, Obstacle};
+use crate::{systems::apply_social_foces, Objective, Obstacle};
 
 use super::{resources::{BlockedStatus, TargetStatus}, systems::*};
 
@@ -13,6 +13,7 @@ impl Plugin for FlowFieldPathfindingPlugin {
         .add_systems(PreUpdate, create_colision_map::<TargetStatus, Objective>)
         .add_systems(PreUpdate, compute_proximity_map.after(create_colision_map::<BlockedStatus, Obstacle>).after(create_colision_map::<TargetStatus, Objective>))
         .add_systems(PreUpdate, create_vector_map.after(compute_proximity_map))
+        .add_systems(FixedUpdate, apply_vector_map.before(apply_social_foces))
         // .add_systems(PreUpdate, create_target_map)
         //.add_systems(PostUpdate, draw_grid)
         //.add_systems(PostUpdate, draw_targets)

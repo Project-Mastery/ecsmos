@@ -28,14 +28,15 @@ fn main() {
         
         .add_systems(FixedUpdate, input_system)
         
-        .add_systems(FixedUpdate, motivation_force_system.before(apply_social_foces))
+        //.add_systems(FixedUpdate, motivation_force_system.before(apply_social_foces))
         .add_systems(FixedUpdate, obstacle_force.before(apply_social_foces))
 
         .add_systems(FixedUpdate, apply_social_foces.before(agent_max_speed_system))
         .add_systems(FixedUpdate, apply_repulsive_forces.before(agent_max_speed_system))
+        //.add_systems(FixedUpdate, motivation_force_system.before(agent_max_speed_system))
 
 
-        // .add_systems(FixedUpdate, agent_max_speed_system.before(velocity_sytem))
+        .add_systems(FixedUpdate, agent_max_speed_system.before(velocity_sytem))
 
         .add_systems(FixedUpdate, velocity_sytem.after(apply_social_foces))
 
@@ -91,7 +92,7 @@ fn setup(
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
             material: materials.add(Color::from(GRAY_500)),
-            transform: Transform::from_xyz(0.0, 0.0, -0.5),
+            transform: Transform::from_xyz(100.0, 0.0, -0.5),
             ..default()
         },
     ));
@@ -102,7 +103,7 @@ fn setup(
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
             material: materials.add(Color::from(GRAY_500)),
-            transform: Transform::from_xyz(100., 100.0, -0.5),
+            transform: Transform::from_xyz(0.0, 0., -0.5),
             ..default()
         },
     ));
@@ -113,18 +114,37 @@ fn setup(
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
             material: materials.add(Color::from(GRAY_500)),
-            transform: Transform::from_xyz(200., 200.0, -0.5),
+            transform: Transform::from_xyz(100.0, 100., -0.5),
             ..default()
         },
     ));
-
     commands.spawn((
         Obstacle,
         Shape::Circle(50.),
         MaterialMesh2dBundle {
             mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
             material: materials.add(Color::from(GRAY_500)),
-            transform: Transform::from_xyz(1100. / 2., 0., -0.5),
+            transform: Transform::from_xyz(100.0, 200., -0.5),
+            ..default()
+        },
+    ));
+    commands.spawn((
+        Obstacle,
+        Shape::Circle(50.),
+        MaterialMesh2dBundle {
+            mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
+            material: materials.add(Color::from(GRAY_500)),
+            transform: Transform::from_xyz(100.0, 300., -0.5),
+            ..default()
+        },
+    ));
+    commands.spawn((
+        Obstacle,
+        Shape::Circle(50.),
+        MaterialMesh2dBundle {
+            mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
+            material: materials.add(Color::from(GRAY_500)),
+            transform: Transform::from_xyz(-0., 300., -0.5),
             ..default()
         },
     ));

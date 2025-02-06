@@ -1,8 +1,8 @@
 use std::collections::VecDeque;
 
-use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, math::VectorSpace, prelude::*};
+use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, math::{vec3, VectorSpace}, prelude::*};
 
-use crate::{ consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, GridMap, Shape};
+use crate::{ components::{Agent, MotivationForce, Speed}, consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, GridMap, Shape};
 
 use super::resources::{BlockedStatus, CellStatus, TargetProximity, TargetStatus};
 
@@ -137,11 +137,33 @@ pub fn create_vector_map(mut vector_field: ResMut<GridMap<Vec2>>, proximity_map:
             let final_vector = values.iter().fold(Vec2::ZERO, |acc, &v| acc + v);
             let final_vector = final_vector.normalize() * AGENT_DESIRED_SPEED;
 
-            println!("{:?}", final_vector);
             vector_field.set_value(center, final_vector).ok();
         }
     }
     
+}
+
+pub fn apply_vector_map(vector_field: ResMut<GridMap<Vec2>>, mut agents: Query<(&mut MotivationForce, &Transform, &Speed), With<Agent>>){
+    
+    for (mut motivation_force, transform, agent_speed) in &mut agents {
+
+        let pos = transform.translation.truncate();
+
+        let base_vector = match vector_field.get_value_at(pos){
+            Some(value) => value,
+            None => continue,
+        };
+
+        if base_vector.is_nan(){
+            continue;
+        }
+        
+        let final_force = base_vector - agent_speed.0;
+        
+        println!("final force => {:?}", final_force);
+
+        motivation_force.0 = final_force;
+    }
 }
 
 pub fn draw_grid(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
