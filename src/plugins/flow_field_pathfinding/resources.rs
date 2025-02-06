@@ -1,5 +1,7 @@
 use core::fmt;
 
+use bevy::math::Vec2;
+
 
 pub trait CellStatus : Default + Send + Sync + Copy + PartialEq{
     fn get_non_default_value() -> Self;
@@ -54,4 +56,9 @@ impl From<f32> for TargetProximity {
     fn from(value: f32) -> Self {
         TargetProximity::Computed(value)
     }
+}
+
+
+pub enum VectorField {
+    HasVector(Vec2)
 }

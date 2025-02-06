@@ -12,10 +12,13 @@ impl Plugin for FlowFieldPathfindingPlugin {
         .add_systems(PreUpdate, create_colision_map::<BlockedStatus, Obstacle>)
         .add_systems(PreUpdate, create_colision_map::<TargetStatus, Objective>)
         .add_systems(PreUpdate, compute_proximity_map.after(create_colision_map::<BlockedStatus, Obstacle>).after(create_colision_map::<TargetStatus, Objective>))
+        .add_systems(PreUpdate, create_vector_map.after(compute_proximity_map))
         // .add_systems(PreUpdate, create_target_map)
         //.add_systems(PostUpdate, draw_grid)
         //.add_systems(PostUpdate, draw_targets)
-        .add_systems(PostUpdate, draw_proximity);
+        .add_systems(PostUpdate, draw_vectors)
+        //.add_systems(PostUpdate, draw_proximity)
+        ;
     }
 }
 

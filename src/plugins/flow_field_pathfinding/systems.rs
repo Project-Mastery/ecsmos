@@ -1,8 +1,8 @@
 use std::collections::VecDeque;
 
-use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, prelude::*};
+use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, math::VectorSpace, prelude::*};
 
-use crate::{ GridMap, Shape};
+use crate::{ consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, GridMap, Shape};
 
 use super::resources::{BlockedStatus, CellStatus, TargetProximity, TargetStatus};
 
@@ -39,6 +39,15 @@ pub fn setup(mut commands: Commands){
             square_size, 
             Rect::from_center_size(Vec2::ZERO * 361.415, square_length * Vec2::ONE), 
             TargetProximity::NotComputed
+        )
+    );
+
+    commands.insert_resource(
+        GridMap::new(
+            square_size, 
+            square_size, 
+            Rect::from_center_size(Vec2::ZERO * 361.415, square_length * Vec2::ONE), 
+            Vec2::ZERO
         )
     );
 }
@@ -92,6 +101,47 @@ pub fn create_colision_map<T, U>(mut map: ResMut<GridMap<T>>, targets: Query<(&T
 
         
     }
+}
+
+pub fn create_vector_map(mut vector_field: ResMut<GridMap<Vec2>>, proximity_map: ResMut<GridMap<TargetProximity>>){
+    
+    if !proximity_map.is_changed() {
+        return;
+    }
+    
+    for x_center in 0..proximity_map.columns{
+        for y_center in 0..proximity_map.rows{
+
+            let center: IVec2 = IVec2::new(x_center as i32, y_center as i32);
+            let mut values = [Vec2::ZERO; 8];
+            let mut i = 0;
+
+            for dx in -1..=1{
+                for dy in -1..=1{
+
+                    if dx == 0 && dy == 0{
+                        continue;
+                    }
+
+                    let delta = IVec2::new(dx, dy);
+                    let current_pos = center + delta;
+                    values[i] = match proximity_map.get_value_at_cell(current_pos) {
+                        Some(TargetProximity::Computed(value)) => 1./value * delta.as_vec2(),
+                        _ => Vec2::ZERO,
+                    };
+                
+                    i += 1;
+                }
+            }
+
+            let final_vector = values.iter().fold(Vec2::ZERO, |acc, &v| acc + v);
+            let final_vector = final_vector.normalize() * AGENT_DESIRED_SPEED;
+
+            println!("{:?}", final_vector);
+            vector_field.set_value(center, final_vector).ok();
+        }
+    }
+    
 }
 
 pub fn draw_grid(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
@@ -262,6 +312,39 @@ pub fn draw_proximity(mut gizmos: Gizmos, map: Res<GridMap<TargetProximity>>){
 
             gizmos.line_2d(cell_top_left, cell_top_left + map.cell_dimentions, color);
             gizmos.line_2d(cell_top_left + map.cell_dimentions.with_x(0.), cell_top_left + map.cell_dimentions.with_y(0.), color);
+        }
+    }
+
+}
+
+pub fn draw_vectors(mut gizmos: Gizmos, map: Res<GridMap<Vec2>>){
+    
+    gizmos
+        .grid_2d(
+            map.area.center(),
+            0.,
+            UVec2::new(map.columns as u32, map.rows as u32),
+            map.cell_dimentions,
+            LinearRgba::gray(0.05),
+        )
+        .outer_edges();
+
+
+    let global_offset = (Vec2::new(map.columns as f32, map.rows as f32) / 2.).floor();
+    
+
+    for x in 0..map.columns {
+        for y in 0..map.rows {
+            
+            if let Some(value) = map.get_value_at_cell(IVec2::new(x as i32,  y as i32)){
+                
+                let cell_top_left = map.area.center() + (Vec2::new(x as f32,  y as f32) - global_offset) * map.cell_dimentions;
+                let cell_center = cell_top_left + Vec2::new(0.5, 0.5) * map.cell_dimentions;
+                gizmos.arrow_2d(cell_center, cell_center + value * AGENT_MASS / 10., PURPLE_500);
+
+            }
+        
+            
         }
     }
 
