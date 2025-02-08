@@ -2,42 +2,37 @@ use std::collections::VecDeque;
 
 use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, prelude::*, state::state};
 
-use crate::{ components::{Agent, MotivationForce, Speed}, consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, GridMap, Shape};
+use crate::{ components::{Agent, MotivationForce, Speed}, consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, plugins::simulation_area::resources::SimulationArea, GridMap, Shape};
 
 use super::{models::*, resources::{PathFindingOverlayState, ShowGridState}};
 
-pub fn setup(mut commands: Commands){
+pub fn setup(simulation_area: Res<SimulationArea>, mut commands: Commands){
 
-    let square_size = 111;
-    let square_length = 1100.;
-
-    let x = GridMap::new(
-        square_size, 
-        square_size, 
-        Rect::from_center_size(Vec2::ZERO * 361.415, square_length * Vec2::ONE), 
-        BlockedStatus::Empty
-    );
-
-    let y = GridMap::new(
-        square_size, 
-        square_size, 
-        Rect::from_center_size(Vec2::ZERO * 361.415, square_length * Vec2::ONE), 
-        TargetStatus::NotTarget
-    );
+    let square_size = 50;
 
     commands.insert_resource(
-        x
-    );
-
-    commands.insert_resource(
-        y
+        GridMap::new(
+            square_size, 
+            square_size, 
+            simulation_area.0, 
+            BlockedStatus::Empty
+        )
     );
 
     commands.insert_resource(
         GridMap::new(
             square_size, 
             square_size, 
-            Rect::from_center_size(Vec2::ZERO * 361.415, square_length * Vec2::ONE), 
+            simulation_area.0, 
+            TargetStatus::NotTarget
+        )
+    );
+
+    commands.insert_resource(
+        GridMap::new(
+            square_size, 
+            square_size, 
+            simulation_area.0, 
             TargetProximity::NotComputed
         )
     );
@@ -46,7 +41,7 @@ pub fn setup(mut commands: Commands){
         GridMap::new(
             square_size, 
             square_size, 
-            Rect::from_center_size(Vec2::ZERO * 361.415, square_length * Vec2::ONE), 
+            simulation_area.0,
             Vec2::ZERO
         )
     );
@@ -228,8 +223,6 @@ pub fn apply_vector_map(vector_field: ResMut<GridMap<Vec2>>, mut agents: Query<(
         }
         
         let final_force = base_vector - agent_speed.0;
-        
-        println!("final force => {:?}", final_force);
 
         motivation_force.0 = final_force;
     }
@@ -290,17 +283,6 @@ pub fn draw_grid(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
 }
 
 pub fn draw_obstacles(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
-    
-    gizmos
-        .grid_2d(
-            map.area.center(),
-            0.,
-            UVec2::new(map.columns as u32, map.rows as u32),
-            map.cell_dimentions,
-            LinearRgba::gray(0.05),
-        )
-        .outer_edges();
-
 
     let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
     let color = Color::from(RED_500);
@@ -323,17 +305,6 @@ pub fn draw_obstacles(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
 }
 
 pub fn draw_targets(mut gizmos: Gizmos, map: Res<GridMap<TargetStatus>>){
-    
-    gizmos
-        .grid_2d(
-            map.area.center(),
-            0.,
-            UVec2::new(map.columns as u32, map.rows as u32),
-            map.cell_dimentions,
-            LinearRgba::gray(0.05),
-        )
-        .outer_edges();
-
 
     let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
     let color = Color::from(GREEN_500);
@@ -356,17 +327,6 @@ pub fn draw_targets(mut gizmos: Gizmos, map: Res<GridMap<TargetStatus>>){
 }
 
 pub fn draw_proximity(mut gizmos: Gizmos, map: Res<GridMap<TargetProximity>>){
-    
-    gizmos
-        .grid_2d(
-            map.area.center(),
-            0.,
-            UVec2::new(map.columns as u32, map.rows as u32),
-            map.cell_dimentions,
-            LinearRgba::gray(0.05),
-        )
-        .outer_edges();
-
 
     let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
     
@@ -394,17 +354,6 @@ pub fn draw_proximity(mut gizmos: Gizmos, map: Res<GridMap<TargetProximity>>){
 }
 
 pub fn draw_vectors(mut gizmos: Gizmos, map: Res<GridMap<Vec2>>){
-    
-    gizmos
-        .grid_2d(
-            map.area.center(),
-            0.,
-            UVec2::new(map.columns as u32, map.rows as u32),
-            map.cell_dimentions,
-            LinearRgba::gray(0.05),
-        )
-        .outer_edges();
-
 
     let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
     

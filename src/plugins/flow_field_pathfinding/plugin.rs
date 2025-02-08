@@ -1,18 +1,26 @@
 use bevy::prelude::*;
 
-use crate::{systems::apply_social_foces, Objective, Obstacle};
+use crate::{components::GridMap, plugins::simulation_area::resources::SimulationArea, systems::apply_social_foces, Objective, Obstacle};
 
-use super::{models::{BlockedStatus, TargetStatus}, resources::*, systems::*};
+use super::{models::{BlockedStatus, TargetProximity, TargetStatus}, resources::*, systems::*};
 
-pub struct FlowFieldPathfindingPlugin;
+pub struct FlowFieldPathfindingPlugin{
+    pub cell_size: f32
+}
 
 impl Plugin for FlowFieldPathfindingPlugin {
     fn build(&self, app: &mut App) {
 
-        app.insert_state(PathFindingOverlayState::ShowNone)
+        let cell_size = self.cell_size;
+
+        app
+        .insert_state(PathFindingOverlayState::ShowNone)
         .insert_state(ShowGridState::HideGrid);
 
-        app.add_systems(Startup, setup)
+        app.add_systems(Startup, move |simulation_area: Res<SimulationArea>, commands: Commands| {
+            setup(simulation_area, commands, cell_size);
+        })
+
         .add_systems(First, handle_grid_state_inputs)
         .add_systems(First, handle_overlay_inputs)
         
@@ -21,7 +29,7 @@ impl Plugin for FlowFieldPathfindingPlugin {
         .add_systems(PreUpdate, compute_proximity_map.after(create_colision_map::<BlockedStatus, Obstacle>).after(create_colision_map::<TargetStatus, Objective>))
         .add_systems(PreUpdate, create_vector_map.after(compute_proximity_map))
         
-        .add_systems(FixedUpdate, apply_vector_map.before(apply_social_foces))
+        .add_systems(Update, apply_vector_map.before(apply_social_foces))
         
         .add_systems(PostUpdate, draw_grid.run_if(in_state(ShowGridState::ShowGrid)))
 
@@ -32,3 +40,46 @@ impl Plugin for FlowFieldPathfindingPlugin {
     }
 }
 
+fn setup(simulation_area: Res<SimulationArea>, mut commands: Commands, cell_size: f32){
+
+    let ratio: Vec2 = simulation_area.0.size() / cell_size * Vec2::ONE;
+    println!("{:?}", ratio);
+    let columns = ratio.x.ceil() as usize;
+    let rows = ratio.y.ceil() as usize;
+
+    commands.insert_resource(
+        GridMap::new(
+            columns, 
+            rows, 
+            simulation_area.0, 
+            BlockedStatus::Empty
+        )
+    );
+
+    commands.insert_resource(
+        GridMap::new(
+            columns, 
+            rows, 
+            simulation_area.0, 
+            TargetStatus::NotTarget
+        )
+    );
+
+    commands.insert_resource(
+        GridMap::new(
+            columns, 
+            rows, 
+            simulation_area.0, 
+            TargetProximity::NotComputed
+        )
+    );
+
+    commands.insert_resource(
+        GridMap::new(
+            columns, 
+            rows, 
+            simulation_area.0,
+            Vec2::ZERO
+        )
+    );
+}

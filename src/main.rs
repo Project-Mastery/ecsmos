@@ -13,14 +13,19 @@ use components::*;
 use consts::*;
 
 
-use plugins::flow_field_pathfinding::plugin::FlowFieldPathfindingPlugin;
+use plugins::{flow_field_pathfinding::plugin::FlowFieldPathfindingPlugin, simulation_area::plugin::SimulationAreaPlugin};
 
 use systems::*;
 
 fn main() {
+
     let mut app = App::new();
     app.add_plugins((DefaultPlugins,))
-    .add_plugins((FlowFieldPathfindingPlugin,))
+    .add_plugins((SimulationAreaPlugin{
+        simulation_area: Rect::from_center_size(Vec2::ZERO * 361.415, 700. * Vec2::ONE)
+    },))
+    .add_plugins((FlowFieldPathfindingPlugin{ cell_size: 5.},))
+    
         .add_systems(Startup, setup)
         // .add_systems(Startup, create_colision_map.after(setup))
         
