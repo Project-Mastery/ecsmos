@@ -3,11 +3,9 @@ mod systems;
 mod consts;
 mod plugins;
 
-use std::f32::consts::PI;
-
 use bevy::{
     color::palettes::tailwind::*,
-    math::{vec2, VectorSpace},
+    math::vec2,
     prelude::*,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };

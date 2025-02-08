@@ -17,8 +17,8 @@ impl Plugin for FlowFieldPathfindingPlugin {
         // .add_systems(PreUpdate, create_target_map)
         //.add_systems(PostUpdate, draw_grid)
         //.add_systems(PostUpdate, draw_targets)
-        .add_systems(PostUpdate, draw_vectors)
-        //.add_systems(PostUpdate, draw_proximity)
+        //.add_systems(PostUpdate, draw_vectors)
+        .add_systems(PostUpdate, draw_proximity)
         ;
     }
 }

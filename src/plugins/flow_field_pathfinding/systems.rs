@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, math::{vec3, VectorSpace}, prelude::*};
+use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, prelude::*};
 
 use crate::{ components::{Agent, MotivationForce, Speed}, consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, GridMap, Shape};
 
@@ -8,7 +8,7 @@ use super::resources::{BlockedStatus, CellStatus, TargetProximity, TargetStatus}
 
 pub fn setup(mut commands: Commands){
 
-    let square_size = 110;
+    let square_size = 111;
     let square_length = 1100.;
 
     let x = GridMap::new(
@@ -179,7 +179,7 @@ pub fn draw_grid(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
         .outer_edges();
 
 
-    let global_offset = (Vec2::new(map.columns as f32, map.rows as f32) / 2.).floor();
+    let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
     let color = Color::from(RED_500);
 
     for x in 0..map.columns {
@@ -212,7 +212,7 @@ pub fn draw_targets(mut gizmos: Gizmos, map: Res<GridMap<TargetStatus>>){
         .outer_edges();
 
 
-    let global_offset = (Vec2::new(map.columns as f32, map.rows as f32) / 2.).floor();
+    let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
     let color = Color::from(GREEN_500);
 
     for x in 0..map.columns {
@@ -314,7 +314,7 @@ pub fn draw_proximity(mut gizmos: Gizmos, map: Res<GridMap<TargetProximity>>){
         .outer_edges();
 
 
-    let global_offset = (Vec2::new(map.columns as f32, map.rows as f32) / 2.).floor();
+    let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
     
 
     for x in 0..map.columns {
@@ -352,7 +352,7 @@ pub fn draw_vectors(mut gizmos: Gizmos, map: Res<GridMap<Vec2>>){
         .outer_edges();
 
 
-    let global_offset = (Vec2::new(map.columns as f32, map.rows as f32) / 2.).floor();
+    let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
     
 
     for x in 0..map.columns {

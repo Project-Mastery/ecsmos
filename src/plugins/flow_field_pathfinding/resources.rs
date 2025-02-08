@@ -57,8 +57,3 @@ impl From<f32> for TargetProximity {
         TargetProximity::Computed(value)
     }
 }
-
-
-pub enum VectorField {
-    HasVector(Vec2)
-}
