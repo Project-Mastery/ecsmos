@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
-use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, prelude::*};
+use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, prelude::*, state::state};
 
 use crate::{ components::{Agent, MotivationForce, Speed}, consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, GridMap, Shape};
 
-use super::resources::{BlockedStatus, CellStatus, TargetProximity, TargetStatus};
+use super::{models::*, resources::{PathFindingOverlayState, ShowGridState}};
 
 pub fn setup(mut commands: Commands){
 
@@ -143,95 +143,6 @@ pub fn create_vector_map(mut vector_field: ResMut<GridMap<Vec2>>, proximity_map:
     
 }
 
-pub fn apply_vector_map(vector_field: ResMut<GridMap<Vec2>>, mut agents: Query<(&mut MotivationForce, &Transform, &Speed), With<Agent>>){
-    
-    for (mut motivation_force, transform, agent_speed) in &mut agents {
-
-        let pos = transform.translation.truncate();
-
-        let base_vector = match vector_field.get_value_at(pos){
-            Some(value) => value,
-            None => continue,
-        };
-
-        if base_vector.is_nan(){
-            continue;
-        }
-        
-        let final_force = base_vector - agent_speed.0;
-        
-        println!("final force => {:?}", final_force);
-
-        motivation_force.0 = final_force;
-    }
-}
-
-pub fn draw_grid(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
-    
-    gizmos
-        .grid_2d(
-            map.area.center(),
-            0.,
-            UVec2::new(map.columns as u32, map.rows as u32),
-            map.cell_dimentions,
-            LinearRgba::gray(0.05),
-        )
-        .outer_edges();
-
-
-    let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
-    let color = Color::from(RED_500);
-
-    for x in 0..map.columns {
-        for y in 0..map.rows {
-            
-            if let Some(BlockedStatus::Empty) = map.get_value_at_cell(IVec2::new(x as i32, y as i32)){
-                continue;
-            }
-
-        
-            let cell_top_left = map.area.center() + (Vec2::new(x as f32,  y as f32) - global_offset) * map.cell_dimentions;
-
-            gizmos.line_2d(cell_top_left, cell_top_left + map.cell_dimentions, color);
-            gizmos.line_2d(cell_top_left + map.cell_dimentions.with_x(0.), cell_top_left + map.cell_dimentions.with_y(0.), color);
-        }
-    }
-
-}
-
-pub fn draw_targets(mut gizmos: Gizmos, map: Res<GridMap<TargetStatus>>){
-    
-    gizmos
-        .grid_2d(
-            map.area.center(),
-            0.,
-            UVec2::new(map.columns as u32, map.rows as u32),
-            map.cell_dimentions,
-            LinearRgba::gray(0.05),
-        )
-        .outer_edges();
-
-
-    let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
-    let color = Color::from(GREEN_500);
-
-    for x in 0..map.columns {
-        for y in 0..map.rows {
-            
-            if let Some(TargetStatus::NotTarget) = map.get_value_at_cell(IVec2::new(x as i32, y as i32)){
-                continue;
-            }
-
-        
-            let cell_top_left = map.area.center() + (Vec2::new(x as f32,  y as f32) - global_offset) * map.cell_dimentions;
-
-            gizmos.line_2d(cell_top_left, cell_top_left + map.cell_dimentions, color);
-            gizmos.line_2d(cell_top_left + map.cell_dimentions.with_x(0.), cell_top_left + map.cell_dimentions.with_y(0.), color);
-        }
-    }
-
-}
-
 pub fn compute_proximity_map(mut proximity_map: ResMut<GridMap<TargetProximity>>, obstacles_map: Res<GridMap<BlockedStatus>>, target_map: Res<GridMap<TargetStatus>>){
     
     if !obstacles_map.is_changed() && !target_map.is_changed(){
@@ -299,6 +210,149 @@ pub fn compute_proximity_map(mut proximity_map: ResMut<GridMap<TargetProximity>>
             }
         }
     }
+}
+
+pub fn apply_vector_map(vector_field: ResMut<GridMap<Vec2>>, mut agents: Query<(&mut MotivationForce, &Transform, &Speed), With<Agent>>){
+    
+    for (mut motivation_force, transform, agent_speed) in &mut agents {
+
+        let pos = transform.translation.truncate();
+
+        let base_vector = match vector_field.get_value_at(pos){
+            Some(value) => value,
+            None => continue,
+        };
+
+        if base_vector.is_nan(){
+            continue;
+        }
+        
+        let final_force = base_vector - agent_speed.0;
+        
+        println!("final force => {:?}", final_force);
+
+        motivation_force.0 = final_force;
+    }
+}
+
+
+pub fn handle_grid_state_inputs(grid_state: Res<State<ShowGridState>>, mut nex_grid_state: ResMut<NextState<ShowGridState>>, keys: Res<ButtonInput<KeyCode>>) {
+    
+    if keys.just_pressed(KeyCode::KeyG) {
+        match grid_state.get() {
+            ShowGridState::HideGrid => nex_grid_state.set(ShowGridState::ShowGrid),
+            ShowGridState::ShowGrid => nex_grid_state.set(ShowGridState::HideGrid),
+        }
+    }
+}
+
+pub fn handle_overlay_inputs(state: Res<State<PathFindingOverlayState>>, mut next_state: ResMut<NextState<PathFindingOverlayState>>, keys: Res<ButtonInput<KeyCode>>) {
+    
+    let mut next = Option::None;
+
+    if keys.just_pressed(KeyCode::KeyO) {
+        next = Some(PathFindingOverlayState::ShowObstacles);
+    }
+
+    if keys.just_pressed(KeyCode::KeyP) {
+        next = Some(PathFindingOverlayState::ShowProimity);
+    }
+
+    if keys.just_pressed(KeyCode::KeyT) {
+        next = Some(PathFindingOverlayState::ShowTargets);
+    }
+
+    if keys.just_pressed(KeyCode::KeyV) {
+        next = Some(PathFindingOverlayState::ShowVectorField);
+    }
+
+    if let Some(new_value) = next{
+        if new_value == *state.get(){
+            next_state.set(PathFindingOverlayState::ShowNone);
+        } else {
+            next_state.set(new_value);
+        }
+    }
+}
+
+
+pub fn draw_grid(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
+    
+    gizmos
+        .grid_2d(
+            map.area.center(),
+            0.,
+            UVec2::new(map.columns as u32, map.rows as u32),
+            map.cell_dimentions,
+            LinearRgba::gray(0.05),
+        )
+        .outer_edges();
+}
+
+pub fn draw_obstacles(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
+    
+    gizmos
+        .grid_2d(
+            map.area.center(),
+            0.,
+            UVec2::new(map.columns as u32, map.rows as u32),
+            map.cell_dimentions,
+            LinearRgba::gray(0.05),
+        )
+        .outer_edges();
+
+
+    let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
+    let color = Color::from(RED_500);
+
+    for x in 0..map.columns {
+        for y in 0..map.rows {
+            
+            if let Some(BlockedStatus::Empty) = map.get_value_at_cell(IVec2::new(x as i32, y as i32)){
+                continue;
+            }
+
+        
+            let cell_top_left = map.area.center() + (Vec2::new(x as f32,  y as f32) - global_offset) * map.cell_dimentions;
+
+            gizmos.line_2d(cell_top_left, cell_top_left + map.cell_dimentions, color);
+            gizmos.line_2d(cell_top_left + map.cell_dimentions.with_x(0.), cell_top_left + map.cell_dimentions.with_y(0.), color);
+        }
+    }
+
+}
+
+pub fn draw_targets(mut gizmos: Gizmos, map: Res<GridMap<TargetStatus>>){
+    
+    gizmos
+        .grid_2d(
+            map.area.center(),
+            0.,
+            UVec2::new(map.columns as u32, map.rows as u32),
+            map.cell_dimentions,
+            LinearRgba::gray(0.05),
+        )
+        .outer_edges();
+
+
+    let global_offset = Vec2::new(map.columns as f32, map.rows as f32) / 2.;
+    let color = Color::from(GREEN_500);
+
+    for x in 0..map.columns {
+        for y in 0..map.rows {
+            
+            if let Some(TargetStatus::NotTarget) = map.get_value_at_cell(IVec2::new(x as i32, y as i32)){
+                continue;
+            }
+
+        
+            let cell_top_left = map.area.center() + (Vec2::new(x as f32,  y as f32) - global_offset) * map.cell_dimentions;
+
+            gizmos.line_2d(cell_top_left, cell_top_left + map.cell_dimentions, color);
+            gizmos.line_2d(cell_top_left + map.cell_dimentions.with_x(0.), cell_top_left + map.cell_dimentions.with_y(0.), color);
+        }
+    }
+
 }
 
 pub fn draw_proximity(mut gizmos: Gizmos, map: Res<GridMap<TargetProximity>>){
