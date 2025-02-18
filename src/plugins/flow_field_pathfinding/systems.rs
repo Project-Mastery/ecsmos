@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, prelude::*, state::state};
+use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, math::VectorSpace, prelude::*, state::state};
 
 use crate::{ components::{Agent, MotivationForce, Speed}, consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, plugins::simulation_area::resources::SimulationArea, GridMap, Shape};
 
@@ -274,12 +274,13 @@ pub fn draw_grid(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
     gizmos
         .grid_2d(
             map.area.center(),
-            0.,
             UVec2::new(map.columns as u32, map.rows as u32),
             map.cell_dimentions,
             LinearRgba::gray(0.05),
         )
         .outer_edges();
+
+
 }
 
 pub fn draw_obstacles(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){

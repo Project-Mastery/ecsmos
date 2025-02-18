@@ -7,7 +7,6 @@ use bevy::{
     color::palettes::tailwind::*,
     math::vec2,
     prelude::*,
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 use components::*;
 use consts::*;
@@ -56,7 +55,7 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d::default());
 
 
 
@@ -68,12 +67,9 @@ fn setup(
                 ObstacleForce(vec2(0.,0.)),
                 MotivationForce(vec2(0.,0.)),
                 RepulsiveForce(vec2(0.,0.)),
-                MaterialMesh2dBundle {
-                    mesh: Mesh2dHandle(meshes.add(Circle { radius: AGENT_RADIUS })),
-                    material: materials.add(Color::from(CYAN_500)),
-                    transform: Transform::from_xyz(x as f32, y as f32, 0.1),
-                    ..default()
-                },
+                Mesh2d(meshes.add(Circle { radius: AGENT_RADIUS })),
+                MeshMaterial2d(materials.add(Color::from(CYAN_500))),
+                Transform::from_xyz(x as f32, y as f32, 0.1)
             ));
         }
     }
@@ -81,75 +77,17 @@ fn setup(
     commands.spawn((
         Objective,
         Shape::Circle(20.),
-        MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: 20.0 })),
-            material: materials.add(Color::from(RED_500)),
-            transform: Transform::from_xyz(300.0, 0.0, 0.0),
-            ..default()
-        },
+        Mesh2d(meshes.add(Circle { radius: 20.0 })),
+        MeshMaterial2d(materials.add(Color::from(RED_500))),
+        Transform::from_xyz(300.0, 0.0, 0.0),
     ));
 
     commands.spawn((
         Obstacle,
         Shape::Circle(50.),
-        MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
-            material: materials.add(Color::from(GRAY_500)),
-            transform: Transform::from_xyz(100.0, 0.0, -0.5),
-            ..default()
-        },
-    ));
-
-    commands.spawn((
-        Obstacle,
-        Shape::Circle(50.),
-        MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
-            material: materials.add(Color::from(GRAY_500)),
-            transform: Transform::from_xyz(0.0, 0., -0.5),
-            ..default()
-        },
-    ));
-
-    commands.spawn((
-        Obstacle,
-        Shape::Circle(50.),
-        MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
-            material: materials.add(Color::from(GRAY_500)),
-            transform: Transform::from_xyz(100.0, 100., -0.5),
-            ..default()
-        },
-    ));
-    commands.spawn((
-        Obstacle,
-        Shape::Circle(50.),
-        MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
-            material: materials.add(Color::from(GRAY_500)),
-            transform: Transform::from_xyz(100.0, 200., -0.5),
-            ..default()
-        },
-    ));
-    commands.spawn((
-        Obstacle,
-        Shape::Circle(50.),
-        MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
-            material: materials.add(Color::from(GRAY_500)),
-            transform: Transform::from_xyz(100.0, 300., -0.5),
-            ..default()
-        },
-    ));
-    commands.spawn((
-        Obstacle,
-        Shape::Circle(50.),
-        MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: 50.0 })),
-            material: materials.add(Color::from(GRAY_500)),
-            transform: Transform::from_xyz(-0., 300., -0.5),
-            ..default()
-        },
+        Mesh2d(meshes.add(Circle { radius: 50.0 })),
+        MeshMaterial2d(materials.add(Color::from(GRAY_500))),
+        Transform::from_xyz(100.0, 0.0, -0.5),
     ));
 }
 

@@ -2,7 +2,7 @@ use std::ops::Add;
 
 use crate::{components::*, consts::*};
 use bevy::{
-    color::palettes::{css::{BLUE, DARK_BLUE, DARK_RED, GREEN, PURPLE, RED, YELLOW}, tailwind::*}, math::{vec2, vec3, VectorSpace,}, prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}, transform
+    color::palettes::{css::{BLUE, DARK_BLUE, DARK_RED, GREEN, PURPLE, RED, YELLOW}, tailwind::*}, math::{vec2, vec3, VectorSpace,}, prelude::*, transform
 };
 
 // pub fn create_colision_map(mut commands: Commands,  mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>, mut map: ResMut<GridMap<CellContents>>, obstacles: Query<&Transform, With<Obstacle>> ){
