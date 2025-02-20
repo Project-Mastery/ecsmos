@@ -24,12 +24,12 @@ impl Plugin for FlowFieldPathfindingPlugin {
         .add_systems(First, handle_grid_state_inputs)
         .add_systems(First, handle_overlay_inputs)
         
-        .add_systems(PreUpdate, create_colision_map::<BlockedStatus, Obstacle>)
-        .add_systems(PreUpdate, create_colision_map::<TargetStatus, Objective>)
-        .add_systems(PreUpdate, compute_proximity_map.after(create_colision_map::<BlockedStatus, Obstacle>).after(create_colision_map::<TargetStatus, Objective>))
-        .add_systems(PreUpdate, create_vector_map.after(compute_proximity_map))
+        .add_systems(PreUpdate, compute_colision_map::<BlockedStatus, Obstacle>)
+        .add_systems(PreUpdate, compute_colision_map::<TargetStatus, Objective>)
+        .add_systems(PreUpdate, compute_proximity_map.after(compute_colision_map::<BlockedStatus, Obstacle>).after(compute_colision_map::<TargetStatus, Objective>))
+        .add_systems(PreUpdate, compute_vector_map.after(compute_proximity_map))
         
-        .add_systems(Update, apply_vector_map.before(apply_social_foces))
+        .add_systems(Update, apply_objective_force_map.before(apply_social_foces))
         
         .add_systems(PostUpdate, draw_grid.run_if(in_state(ShowGridState::ShowGrid)))
 

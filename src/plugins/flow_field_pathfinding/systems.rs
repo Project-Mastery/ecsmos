@@ -1,12 +1,16 @@
 use std::collections::VecDeque;
 
-use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, math::VectorSpace, prelude::*, state::state};
+use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, prelude::*};
 
-use crate::{ components::{Agent, MotivationForce, Speed}, consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, plugins::simulation_area::resources::SimulationArea, utils::point_in_shape, GridMap, Shape};
+use crate::{components::{Agent, MotivationForce, Speed}, consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, utils::point_in_shape, GridMap, Shape};
 
 use super::{models::*, resources::{PathFindingOverlayState, ShowGridState}};
 
-pub fn create_colision_map<T, U>(mut map: ResMut<GridMap<T>>, targets: Query<(&Transform, &Shape), (With<U>, Changed<Transform>)> ) where T: CellStatus + 'static, U: Component{
+// ###################
+// Computation Systems
+// ###################
+
+pub fn compute_colision_map<T, U>(mut map: ResMut<GridMap<T>>, targets: Query<(&Transform, &Shape), (With<U>, Changed<Transform>)> ) where T: CellStatus + 'static, U: Component{
     
     if !targets.is_empty(){
         map.reset(T::default());
@@ -54,7 +58,7 @@ pub fn create_colision_map<T, U>(mut map: ResMut<GridMap<T>>, targets: Query<(&T
     }
 }
 
-pub fn create_vector_map(mut vector_field: ResMut<GridMap<Vec2>>, proximity_map: ResMut<GridMap<TargetProximity>>){
+pub fn compute_vector_map(mut vector_field: ResMut<GridMap<Vec2>>, proximity_map: ResMut<GridMap<TargetProximity>>){
     
     if !proximity_map.is_changed() {
         return;
@@ -163,7 +167,11 @@ pub fn compute_proximity_map(mut proximity_map: ResMut<GridMap<TargetProximity>>
     }
 }
 
-pub fn apply_vector_map(vector_field: ResMut<GridMap<Vec2>>, mut agents: Query<(&mut MotivationForce, &Transform, &Speed), With<Agent>>){
+// ############
+// Force Sytems
+// ############
+
+pub fn apply_objective_force_map(vector_field: ResMut<GridMap<Vec2>>, mut agents: Query<(&mut MotivationForce, &Transform, &Speed), With<Agent>>){
     
     for (mut motivation_force, transform, agent_speed) in &mut agents {
 
@@ -184,6 +192,9 @@ pub fn apply_vector_map(vector_field: ResMut<GridMap<Vec2>>, mut agents: Query<(
     }
 }
 
+// #############
+// Input Systems
+// #############
 
 pub fn handle_grid_state_inputs(grid_state: Res<State<ShowGridState>>, mut nex_grid_state: ResMut<NextState<ShowGridState>>, keys: Res<ButtonInput<KeyCode>>) {
     
@@ -224,6 +235,9 @@ pub fn handle_overlay_inputs(state: Res<State<PathFindingOverlayState>>, mut nex
     }
 }
 
+// ###############
+// Drawing Systems
+// ###############
 
 pub fn draw_grid(mut gizmos: Gizmos, map: Res<GridMap<BlockedStatus>>){
     
