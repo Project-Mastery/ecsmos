@@ -28,12 +28,21 @@ pub struct Obstacle;
 #[derive(Component)]
 pub enum Shape {
     Circle(f32),
+
+    // Points have to be counterclockwise
+    Polygon(Vec<Vec2>)
 }
 
 impl Shape {
     pub fn get_rectangle_with_center(&self, center: Vec2) -> Rect{
         match self {
             Shape::Circle(r) => Rect::from_center_half_size(center, Vec2::new(*r, *r)),
+            Shape::Polygon(points) => {
+                let max = points.iter().fold(Vec2::NEG_INFINITY, |acc, x| x.max(acc));
+                let min = points.iter().fold(Vec2::INFINITY, |acc, x| x.min(acc));
+
+                Rect::from_corners(min + center, max + center)
+            },
         }
     }
 }

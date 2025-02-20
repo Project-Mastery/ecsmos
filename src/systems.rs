@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-use crate::{components::*, consts::*};
+use crate::{components::*, consts::*, utils::{signed_distance_and_normal_to_sahpe, signed_distance_to_sahpe}};
 use bevy::{
     color::palettes::{css::{BLUE, DARK_BLUE, DARK_RED, GREEN, PURPLE, RED, YELLOW}, tailwind::*}, math::{vec2, vec3, VectorSpace,}, prelude::*, transform
 };
@@ -139,7 +139,7 @@ pub fn agent_araived_at_destination_system(
 
 pub fn obstacle_force(
     mut agents: Query<(&mut ObstacleForce, &Transform), With<Agent>>,
-    obstacles: Query<&Transform, With<Obstacle>>,
+    obstacles: Query<(&Transform, &Shape), With<Obstacle>>,
 ) {
 
     for (mut force, _)in &mut agents{
@@ -147,12 +147,16 @@ pub fn obstacle_force(
     }
     
     for (mut obstacle_force, agent_transform) in &mut agents {
-        for obstacle_transform in &obstacles {
-            let effective_distance = (obstacle_transform.translation.with_z(0.)
-                - agent_transform.translation.with_z(0.))
-            .length()
-                - AGENT_RADIUS
-                - 50.;
+        for (obstacle_transform, obstacle_shape) in &obstacles {
+            
+            let (n, dist) = signed_distance_and_normal_to_sahpe(
+                obstacle_shape, 
+                obstacle_transform.translation.truncate(), 
+                agent_transform.translation.truncate()
+            );
+        
+            
+            let effective_distance = dist - AGENT_RADIUS;
             let effective_distance = effective_distance / PIXELS_PER_METER;
 
             let a = 2000.;
@@ -161,10 +165,8 @@ pub fn obstacle_force(
             let kappa = 240000.;
             let g = 0.;
 
-            let n = (agent_transform.translation - obstacle_transform.translation)
-                .with_z(0.)
-                .normalize();
-            let t = Vec3::new(-n.y, n.x, 0.);
+            let n = n.normalize();
+            let t = Vec2::new(-n.y, n.x);
 
             let repulsive_factor = a * (-effective_distance / b).exp();
             let contact_factor = k * g * effective_distance;

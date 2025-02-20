@@ -2,50 +2,9 @@ use std::collections::VecDeque;
 
 use bevy::{color::palettes::tailwind::{GREEN_500, PURPLE_500, RED_500}, math::VectorSpace, prelude::*, state::state};
 
-use crate::{ components::{Agent, MotivationForce, Speed}, consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, plugins::simulation_area::resources::SimulationArea, GridMap, Shape};
+use crate::{ components::{Agent, MotivationForce, Speed}, consts::{AGENT_DESIRED_SPEED, AGENT_MASS}, plugins::simulation_area::resources::SimulationArea, utils::point_in_shape, GridMap, Shape};
 
 use super::{models::*, resources::{PathFindingOverlayState, ShowGridState}};
-
-pub fn setup(simulation_area: Res<SimulationArea>, mut commands: Commands){
-
-    let square_size = 50;
-
-    commands.insert_resource(
-        GridMap::new(
-            square_size, 
-            square_size, 
-            simulation_area.0, 
-            BlockedStatus::Empty
-        )
-    );
-
-    commands.insert_resource(
-        GridMap::new(
-            square_size, 
-            square_size, 
-            simulation_area.0, 
-            TargetStatus::NotTarget
-        )
-    );
-
-    commands.insert_resource(
-        GridMap::new(
-            square_size, 
-            square_size, 
-            simulation_area.0, 
-            TargetProximity::NotComputed
-        )
-    );
-
-    commands.insert_resource(
-        GridMap::new(
-            square_size, 
-            square_size, 
-            simulation_area.0,
-            Vec2::ZERO
-        )
-    );
-}
 
 pub fn create_colision_map<T, U>(mut map: ResMut<GridMap<T>>, targets: Query<(&Transform, &Shape), (With<U>, Changed<Transform>)> ) where T: CellStatus + 'static, U: Component{
     
@@ -54,9 +13,6 @@ pub fn create_colision_map<T, U>(mut map: ResMut<GridMap<T>>, targets: Query<(&T
     }
     
     for (transform, shape) in &targets {
-
-        let Shape::Circle(radius) = shape;
-
         let center = transform.translation.truncate();
         let rect = shape.get_rectangle_with_center(center);
 
@@ -85,7 +41,7 @@ pub fn create_colision_map<T, U>(mut map: ResMut<GridMap<T>>, targets: Query<(&T
 
                 let cell_center = map.get_coord(cell);
 
-                if(cell_center - center).length() >= *radius {
+                if !point_in_shape(shape, center, cell_center) {
                     let _ = map.set_value(cell, T::default());
                     continue;
                 }
@@ -375,3 +331,4 @@ pub fn draw_vectors(mut gizmos: Gizmos, map: Res<GridMap<Vec2>>){
     }
 
 }
+

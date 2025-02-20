@@ -2,6 +2,7 @@ mod components;
 mod systems;
 mod consts;
 mod plugins;
+mod utils;
 
 use bevy::{
     color::palettes::tailwind::*,
@@ -15,11 +16,12 @@ use consts::*;
 use plugins::{flow_field_pathfinding::plugin::FlowFieldPathfindingPlugin, simulation_area::plugin::SimulationAreaPlugin};
 
 use systems::*;
+use bevy_prototype_lyon::prelude::*;
 
 fn main() {
 
     let mut app = App::new();
-    app.add_plugins((DefaultPlugins,))
+    app.add_plugins((DefaultPlugins, ShapePlugin))
     .add_plugins((SimulationAreaPlugin{
         simulation_area: Rect::from_center_size(Vec2::ZERO * 361.415, 700. * Vec2::ONE)
     },))
@@ -43,7 +45,7 @@ fn main() {
         .add_systems(FixedUpdate, velocity_sytem.after(apply_social_foces))
 
         .add_systems(FixedUpdate, agent_araived_at_destination_system.after(velocity_sytem))
-        // .add_systems(FixedUpdate, show_social_forces.after(apply_social_foces))
+       // .add_systems(FixedUpdate, show_social_forces.after(apply_social_foces))
         ;
         
 
@@ -88,6 +90,33 @@ fn setup(
         Mesh2d(meshes.add(Circle { radius: 50.0 })),
         MeshMaterial2d(materials.add(Color::from(GRAY_500))),
         Transform::from_xyz(100.0, 0.0, -0.5),
+    ));
+
+    let points = vec![Vec2::new(50., 50.), Vec2::new(-50., 50.), Vec2::new(-100., 0.),Vec2::new(-50., -50.), Vec2::new(50., -50.)];
+
+    let mut path_builder = PathBuilder::new();
+    path_builder.move_to(points[0]);
+
+
+    for point in points.iter().skip(1)  {
+        path_builder.line_to(*point);
+    }
+
+    let shape = Shape::Polygon(points);
+
+    path_builder.close();
+    let path = path_builder.build();
+
+    commands.spawn((
+        Obstacle,
+        shape,
+        ShapeBundle {
+            path,
+            transform: Transform::from_xyz(0., 70., -10.),
+            visibility: default(),
+            ..default()
+        },
+        Fill::color(GRAY_500.with_alpha(0.5)),
     ));
 }
 

@@ -43,7 +43,6 @@ impl Plugin for FlowFieldPathfindingPlugin {
 fn setup(simulation_area: Res<SimulationArea>, mut commands: Commands, cell_size: f32){
 
     let ratio: Vec2 = simulation_area.0.size() / cell_size * Vec2::ONE;
-    println!("{:?}", ratio);
     let columns = ratio.x.ceil() as usize;
     let rows = ratio.y.ceil() as usize;
 
